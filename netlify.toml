@@ -3,6 +3,10 @@
   command = "yarn build"
   functions = "netlify/functions"
 
+[functions]
+  timeout = 26
+
+
 [[redirects]]
   from = "/api/health"
   to = "/.netlify/functions/health"
