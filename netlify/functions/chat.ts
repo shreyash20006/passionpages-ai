@@ -1,5 +1,6 @@
 import { Handler } from "@netlify/functions";
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { authenticateUser } from "./utils/auth";
 import { jsonResponse, errorResponse } from "./utils/response";
 
@@ -15,6 +16,32 @@ export const handler: Handler = async (event, context) => {
   try {
     const { messages, modelId } = JSON.parse(event.body || "{}");
     await authenticateUser(event);
+
+    // ─── Gemini route ─────────────────────────────────────────────────────────
+    if (modelId.startsWith("gemini:")) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) return errorResponse(500, "GEMINI_API_KEY_MISSING");
+
+      const geminiModelId = modelId.replace(/^gemini:/, "");
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: geminiModelId,
+        systemInstruction: SYSTEM_INSTRUCTION,
+      });
+
+      // Convert messages to Gemini history format
+      const history = messages.slice(0, -1).map((m: any) => ({
+        role: m.role === "user" ? "user" : "model",
+        parts: [{ text: m.content }],
+      }));
+
+      const lastMessage = messages[messages.length - 1]?.content || "";
+      const chat = model.startChat({ history });
+      const result = await chat.sendMessage(lastMessage);
+      const text = result.response.text();
+
+      return jsonResponse(200, { text });
+    }
 
     // ─── HuggingFace route ────────────────────────────────────────────────────
     if (modelId.startsWith("hf:")) {
@@ -48,28 +75,30 @@ export const handler: Handler = async (event, context) => {
       if (!apiKey) return errorResponse(500, "BYTEZ_API_KEY_MISSING");
 
       const bytezModelId = modelId.replace(/^bytez:/, "");
-
-      // Bytez is OpenAI-compatible — use OpenAI SDK with Bytez base URL
       const openai = new OpenAI({
         apiKey,
         baseURL: "https://api.bytez.com/models/v2/openai/v1",
       });
 
-      const formattedMessages = [
-        { role: "system", content: SYSTEM_INSTRUCTION },
-        ...messages.map((m: any) => ({
-          role: m.role === "user" ? "user" : "assistant",
-          content: m.content,
-        })),
-      ];
+      const formattedMessages = messages.map((m: any) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      }));
 
       const response = await openai.chat.completions.create({
         model: bytezModelId,
-        messages: formattedMessages as any,
-        max_tokens: 1024,
+        messages: [
+          { role: "system", content: SYSTEM_INSTRUCTION },
+          ...formattedMessages,
+        ] as any,
+        max_tokens: 512,
+        temperature: 0.7,
       });
 
-      const text = response.choices[0]?.message?.content ?? "";
+      const text = response.choices[0]?.message?.content;
+      if (!text) {
+        return errorResponse(500, "Model returned empty response. Please try again.");
+      }
       return jsonResponse(200, { text });
     }
 

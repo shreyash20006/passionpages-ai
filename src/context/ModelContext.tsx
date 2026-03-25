@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 
-export type ModelProvider = "huggingface" | "bytez";
+export type ModelProvider = "huggingface" | "bytez" | "gemini";
 
 export interface Model {
   id: string;
@@ -9,6 +9,16 @@ export interface Model {
 }
 
 export const AVAILABLE_MODELS: Model[] = [
+  {
+    id: "gemini:gemini-2.0-flash",
+    name: "Gemini 2.0 Flash",
+    provider: "gemini",
+  },
+  {
+    id: "gemini:gemini-1.5-flash",
+    name: "Gemini 1.5 Flash",
+    provider: "gemini",
+  },
   {
     id: "hf:Qwen/Qwen2.5-7B-Instruct",
     name: "Qwen2.5 7B (Hugging Face)",
