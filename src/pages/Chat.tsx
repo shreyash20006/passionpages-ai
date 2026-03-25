@@ -699,36 +699,91 @@ export default function Chat() {
               {isVisualContent(latestModelMsg) ? (
                 <NoteRenderer content={latestModelMsg} />
               ) : (
-                /* Fallback to markdown */
-                <div className="prose prose-invert prose-sm max-w-none bg-[#0f1629] p-8 rounded-2xl border border-white/5 shadow-xl">
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code({
-                        node,
-                        inline,
-                        className,
-                        children,
-                        ...props
-                      }: any) {
-                        const match = /language-(\w+)/.exec(className || "");
-                        if (!inline && match && match[1] === "mermaid") {
-                          return (
-                            <Mermaid
-                              chart={String(children).replace(/\n$/, "")}
-                            />
-                          );
-                        }
-                        return (
-                          <code className={className} {...props}>
+                /* Fallback: GPAI-style rich markdown */
+                <div className="bg-[#0d1220] rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden">
+                  <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
+                  <div className="p-8">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ children }: any) => (
+                          <h1 className="text-2xl font-bold text-white mb-4 mt-6 first:mt-0 flex items-center gap-3">
+                            <span className="w-1 h-7 bg-gradient-to-b from-pink-500 to-purple-500 rounded-full inline-block shrink-0" />
                             {children}
-                          </code>
-                        );
-                      },
-                    }}
-                  >
-                    {latestModelMsg}
-                  </Markdown>
+                          </h1>
+                        ),
+                        h2: ({ children }: any) => (
+                          <h2 className="text-xl font-bold text-white mb-3 mt-8 first:mt-0 pb-2 border-b border-white/[0.08] flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-pink-500 inline-block shrink-0" />
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }: any) => (
+                          <h3 className="text-base font-bold text-pink-300 mb-2 mt-6 first:mt-0">{children}</h3>
+                        ),
+                        p: ({ children }: any) => (
+                          <p className="text-slate-300 text-[15px] leading-[1.85] mb-4">{children}</p>
+                        ),
+                        strong: ({ children }: any) => (
+                          <strong className="font-bold text-white">{children}</strong>
+                        ),
+                        em: ({ children }: any) => (
+                          <em className="italic text-purple-300">{children}</em>
+                        ),
+                        ol: ({ children }: any) => (
+                          <ol className="space-y-3 mb-4 list-none pl-0">{children}</ol>
+                        ),
+                        ul: ({ children }: any) => (
+                          <ul className="space-y-2 mb-4 list-none pl-0">{children}</ul>
+                        ),
+                        li: ({ children, ordered, index }: any) => (
+                          <li className="flex items-start gap-3 text-slate-300 text-[15px] leading-relaxed">
+                            <span className="shrink-0 mt-0.5 w-6 h-6 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30 flex items-center justify-center text-xs font-bold text-pink-300">
+                              {typeof index === "number" ? index + 1 : "•"}
+                            </span>
+                            <span>{children}</span>
+                          </li>
+                        ),
+                        blockquote: ({ children }: any) => (
+                          <blockquote className="border-l-4 border-purple-500/60 pl-4 py-2 my-4 bg-purple-500/5 rounded-r-xl text-slate-400 italic">{children}</blockquote>
+                        ),
+                        code({ node, inline, className, children, ...props }: any) {
+                          const match = /language-(\w+)/.exec(className || "");
+                          if (!inline && match && match[1] === "mermaid") {
+                            return <Mermaid chart={String(children).replace(/\n$/, "")} />;
+                          }
+                          if (inline) {
+                            return <code className="px-1.5 py-0.5 bg-pink-500/10 border border-pink-500/20 text-pink-300 rounded text-sm font-mono" {...props}>{children}</code>;
+                          }
+                          return (
+                            <div className="relative group my-4">
+                              <CopyButton text={String(children)} />
+                              <pre className="bg-[#070b14] border border-white/[0.06] rounded-xl p-5 overflow-x-auto text-sm font-mono text-slate-300 leading-relaxed">
+                                <code className={className} {...props}>{children}</code>
+                              </pre>
+                            </div>
+                          );
+                        },
+                        table: ({ children }: any) => (
+                          <div className="overflow-x-auto my-4 rounded-xl border border-white/[0.08]">
+                            <table className="w-full text-sm text-slate-300">{children}</table>
+                          </div>
+                        ),
+                        th: ({ children }: any) => (
+                          <th className="px-4 py-3 bg-[#0f1629] text-left font-semibold text-pink-300 border-b border-white/[0.08]">{children}</th>
+                        ),
+                        td: ({ children }: any) => (
+                          <td className="px-4 py-3 border-b border-white/[0.04] text-slate-300">{children}</td>
+                        ),
+                        hr: () => <hr className="my-6 border-white/[0.06]" />,
+                      }}
+                    >
+                      {latestModelMsg}
+                    </Markdown>
+                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                      <p className="text-xs text-slate-600 italic">💬 Ask a follow-up question in the chat →</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>
