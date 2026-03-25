@@ -1,6 +1,5 @@
 import { Handler } from "@netlify/functions";
 import OpenAI from "openai";
-import { Bytez } from "bytez";
 import { authenticateUser } from "./utils/auth";
 import { jsonResponse, errorResponse } from "./utils/response";
 
@@ -43,17 +42,14 @@ export const handler: Handler = async (event, context) => {
       return jsonResponse(200, { text: response.choices[0].message.content });
     }
 
-    // ─── Bytez route ──────────────────────────────────────────────────────────
+    // ─── Bytez route (REST API - no npm package needed) ───────────────────────
     if (modelId.startsWith("bytez:")) {
       const apiKey = process.env.BYTEZ_API_KEY;
       if (!apiKey) return errorResponse(500, "BYTEZ_API_KEY_MISSING");
 
       const bytezModelId = modelId.replace(/^bytez:/, "");
-      const sdk = new Bytez(apiKey);
-      const model = sdk.model(bytezModelId);
 
-      // Build the conversation: inject system prompt as a leading user+assistant exchange
-      // so models without native system-role support still receive context.
+      // Build conversation including system context
       const conversationMessages = [
         { role: "user", content: SYSTEM_INSTRUCTION },
         {
@@ -67,19 +63,36 @@ export const handler: Handler = async (event, context) => {
         })),
       ];
 
-      const results = await model.run(conversationMessages);
+      // Call Bytez REST API directly
+      const response = await fetch(
+        `https://api.bytez.com/model/v2/${bytezModelId}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Key ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: conversationMessages,
+            max_new_tokens: 1024,
+          }),
+        }
+      );
 
-      if (results.error) {
-        console.error("Bytez API Error:", results.error);
-        return errorResponse(500, String(results.error));
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Bytez API error:", errText);
+        return errorResponse(response.status, `Bytez API error: ${errText}`);
       }
 
-      // The Bytez SDK returns output as the generated text string
+      const data = await response.json();
+
+      // Extract text from response
       const text =
-        typeof results.output === "string"
-          ? results.output
-          : results.output?.[0]?.generated_text ??
-            JSON.stringify(results.output);
+        data?.output ??
+        data?.generated_text ??
+        data?.[0]?.generated_text ??
+        JSON.stringify(data);
 
       return jsonResponse(200, { text });
     }

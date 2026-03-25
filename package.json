@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
-    "bytez": "^1.0.0",
     "@google/genai": "^1.45.0",
     "@google/generative-ai": "^0.24.1",
     "@netlify/functions": "^5.1.3",
