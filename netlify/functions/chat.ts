@@ -42,58 +42,34 @@ export const handler: Handler = async (event, context) => {
       return jsonResponse(200, { text: response.choices[0].message.content });
     }
 
-    // ─── Bytez route (REST API - no npm package needed) ───────────────────────
+    // ─── Bytez route (OpenAI-compatible API) ──────────────────────────────────
     if (modelId.startsWith("bytez:")) {
       const apiKey = process.env.BYTEZ_API_KEY;
       if (!apiKey) return errorResponse(500, "BYTEZ_API_KEY_MISSING");
 
       const bytezModelId = modelId.replace(/^bytez:/, "");
 
-      // Build conversation including system context
-      const conversationMessages = [
-        { role: "user", content: SYSTEM_INSTRUCTION },
-        {
-          role: "assistant",
-          content:
-            "Understood! I am PassionPages.ai, your dedicated academic AI assistant. How can I help you today?",
-        },
+      // Bytez is OpenAI-compatible — use OpenAI SDK with Bytez base URL
+      const openai = new OpenAI({
+        apiKey,
+        baseURL: "https://api.bytez.com/models/v2/openai/v1",
+      });
+
+      const formattedMessages = [
+        { role: "system", content: SYSTEM_INSTRUCTION },
         ...messages.map((m: any) => ({
           role: m.role === "user" ? "user" : "assistant",
           content: m.content,
         })),
       ];
 
-      // Call Bytez REST API directly
-      const response = await fetch(
-        `https://api.bytez.com/model/v2/${bytezModelId}`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Key ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: conversationMessages,
-            max_new_tokens: 1024,
-          }),
-        }
-      );
+      const response = await openai.chat.completions.create({
+        model: bytezModelId,
+        messages: formattedMessages as any,
+        max_tokens: 1024,
+      });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("Bytez API error:", errText);
-        return errorResponse(response.status, `Bytez API error: ${errText}`);
-      }
-
-      const data = await response.json();
-
-      // Extract text from response
-      const text =
-        data?.output ??
-        data?.generated_text ??
-        data?.[0]?.generated_text ??
-        JSON.stringify(data);
-
+      const text = response.choices[0]?.message?.content ?? "";
       return jsonResponse(200, { text });
     }
 
