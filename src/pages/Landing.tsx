@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Sparkles,
   FileText,
@@ -8,7 +8,6 @@ import {
   BookOpen,
   UploadCloud,
   ArrowRight,
-  Headphones,
   Presentation,
   HelpCircle,
   Network,
@@ -88,7 +87,7 @@ const FloatingOrbs = () => (
 const FeatureCard = ({
   icon: Icon, label, color, gradient, delay, onClick,
 }: {
-  icon: any; label: string; color: string; gradient: string; delay: number; onClick?: () => void;
+  key?: React.Key; icon: any; label: string; color: string; gradient: string; delay: number; onClick?: () => void;
 }) => (
   <motion.button
     onClick={onClick}
