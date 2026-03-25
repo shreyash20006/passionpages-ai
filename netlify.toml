@@ -1,0 +1,44 @@
+[build]
+  publish = "dist"
+  command = "yarn build"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/upload"
+  to = "/.netlify/functions/upload"
+  status = 200
+
+[[redirects]]
+  from = "/api/settings/keys"
+  to = "/.netlify/functions/settings-keys"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat/history"
+  to = "/.netlify/functions/chat-history"
+  status = 200
+
+[[redirects]]
+  from = "/api/notes"
+  to = "/.netlify/functions/notes"
+  status = 200
+
+[[redirects]]
+  from = "/api/notes/:id"
+  to = "/.netlify/functions/notes?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
