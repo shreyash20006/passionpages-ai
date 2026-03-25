@@ -20,13 +20,13 @@ export const AVAILABLE_MODELS: Model[] = [
     provider: "gemini",
   },
   {
-    id: "xai:grok-3",
-    name: "Grok 3",
+    id: "xai:grok-4-1-fast",
+    name: "Grok 4.1 Fast",
     provider: "xai",
   },
   {
-    id: "xai:grok-3-fast",
-    name: "Grok 3 Fast",
+    id: "xai:grok-4-1",
+    name: "Grok 4.1",
     provider: "xai",
   },
   {
