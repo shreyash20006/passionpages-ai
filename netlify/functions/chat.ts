@@ -30,10 +30,18 @@ export const handler: Handler = async (event, context) => {
       });
 
       // Convert messages to Gemini history format
-      const history = messages.slice(0, -1).map((m: any) => ({
+      // Gemini requires history to start with 'user' role — filter leading assistant messages
+      const historyRaw = messages.slice(0, -1).map((m: any) => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.content }],
       }));
+
+      // Drop leading model messages to satisfy Gemini's constraint
+      let startIdx = 0;
+      while (startIdx < historyRaw.length && historyRaw[startIdx].role === "model") {
+        startIdx++;
+      }
+      const history = historyRaw.slice(startIdx);
 
       const lastMessage = messages[messages.length - 1]?.content || "";
       const chat = model.startChat({ history });
@@ -42,6 +50,7 @@ export const handler: Handler = async (event, context) => {
 
       return jsonResponse(200, { text });
     }
+
 
     // ─── HuggingFace route ────────────────────────────────────────────────────
     if (modelId.startsWith("hf:")) {
