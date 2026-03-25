@@ -52,6 +52,32 @@ export const handler: Handler = async (event, context) => {
     }
 
 
+    // ─── xAI Grok route ───────────────────────────────────────────────────────
+    if (modelId.startsWith("xai:")) {
+      const apiKey = process.env.XAI_API_KEY;
+      if (!apiKey) return errorResponse(500, "XAI_API_KEY_MISSING");
+
+      const xaiModel = modelId.replace(/^xai:/, "");
+      const openai = new OpenAI({
+        apiKey,
+        baseURL: "https://api.x.ai/v1",
+      });
+
+      const formattedMessages = [
+        { role: "system", content: SYSTEM_INSTRUCTION },
+        ...messages.map((m: any) => ({
+          role: m.role === "user" ? "user" : "assistant",
+          content: m.content,
+        })),
+      ];
+
+      const response = await openai.chat.completions.create({
+        model: xaiModel,
+        messages: formattedMessages as any,
+      });
+      return jsonResponse(200, { text: response.choices[0].message.content });
+    }
+
     // ─── HuggingFace route ────────────────────────────────────────────────────
     if (modelId.startsWith("hf:")) {
       const apiKey = process.env.HUGGINGFACE_API_KEY;
