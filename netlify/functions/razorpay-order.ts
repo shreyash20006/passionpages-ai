@@ -9,15 +9,20 @@ export const handler: Handler = async (event, context) => {
 
   try {
     const { tierId, isYearly } = JSON.parse(event.body || "{}");
-    
-    // Authenticate user before allowing payment
-    const user = await authenticateUser(event);
-    if (!user) return errorResponse(401, "Unauthorized - Please login first");
+
+    // Try to get user if logged in (optional — allows guest checkout)
+    let userId = "guest";
+    try {
+      const user = await authenticateUser(event);
+      if (user && user.uid) userId = user.uid;
+    } catch (_) {
+      // Not logged in — allow anonymous pricing check
+    }
 
     let price = 0;
     if (tierId === "pro") price = isYearly ? 799 : 99;
     if (tierId === "college") price = isYearly ? 49 * 12 : 49;
-    
+
     if (price === 0) {
       return errorResponse(400, "Invalid plan selected");
     }
@@ -26,40 +31,39 @@ export const handler: Handler = async (event, context) => {
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || !keySecret) {
-      return errorResponse(500, "Razorpay keys are not configured in Netlify settings");
+      return errorResponse(500, "Razorpay keys are not configured in Netlify Environment Variables");
     }
 
-    // Razorpay amount is in paise (₹1 = 100 paise)
+    // Razorpay amount is in paise (1 INR = 100 paise)
     const amountInPaise = price * 100;
-    
-    // Create order structure
+
     const orderPayload = {
       amount: amountInPaise,
       currency: "INR",
       receipt: `rcpt_${Date.now()}`,
       notes: {
-        userId: user.uid,
+        userId: userId,
         tierId: tierId,
-        isYearly: isYearly ? "true" : "false"
-      }
+        isYearly: isYearly ? "true" : "false",
+      },
     };
 
-    // Make REST API call to Razorpay
+    // Make REST API call to Razorpay using Basic Auth
     const base64Auth = btoa(`${keyId}:${keySecret}`);
-    
+
     const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${base64Auth}`
+        "Authorization": `Basic ${base64Auth}`,
       },
-      body: JSON.stringify(orderPayload)
+      body: JSON.stringify(orderPayload),
     });
 
     if (!razorpayResponse.ok) {
       const errorData = await razorpayResponse.text();
-      console.error("Razorpay Error:", errorData);
-      return errorResponse(500, "Failed to create Razorpay order");
+      console.error("Razorpay API Error:", errorData);
+      return errorResponse(razorpayResponse.status, `Razorpay Error: ${errorData}`);
     }
 
     const orderData = await razorpayResponse.json();
@@ -68,11 +72,11 @@ export const handler: Handler = async (event, context) => {
       id: orderData.id,
       amount: orderData.amount,
       currency: orderData.currency,
-      keyId: keyId // Send public key to frontend for checkout initialization
+      keyId: keyId, // Send public key ID to frontend
     });
 
   } catch (error: any) {
-    console.error("Razorpay Order API Error:", error);
+    console.error("razorpay-order handler error:", error);
     return errorResponse(500, error.message || "Internal Server Error");
   }
 };
