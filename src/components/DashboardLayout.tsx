@@ -24,6 +24,7 @@ import {
   Network,
   HelpCircle,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { useModel, AVAILABLE_MODELS } from "../context/ModelContext";
 import { useAuth } from "../context/AuthContext";
@@ -234,6 +235,15 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-4 sm:gap-6">
+            {/* Upgrade Button */}
+            <Link
+              to="/pricing"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-600/20 text-pink-300 font-bold border border-pink-500/30 hover:bg-pink-500/30 hover:text-white transition-all text-sm shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] group hover:scale-105"
+            >
+              <Zap size={16} className="text-pink-400 group-hover:text-yellow-400 transition-colors" />
+              <span>Upgrade</span>
+            </Link>
+
             {/* Model Selector */}
             <div
               className="hidden sm:flex items-center relative"
