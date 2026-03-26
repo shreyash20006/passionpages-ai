@@ -205,20 +205,34 @@ export default function Pricing() {
 
       const orderData = await response.json();
       
-      // 3. Open Razorpay Widget
+      // 3. Open Razorpay Widget with custom branding
       const options = {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
         name: "PassionPages.ai",
-        description: `Upgrade to ${tier.name} ${isYearly ? '(Yearly)' : '(Monthly)'}`,
+        description: `${tier.name} Plan — ${isYearly ? 'Yearly' : 'Monthly'} Subscription`,
+        image: "https://passionpageseduai.netlify.app/favicon.ico",
         order_id: orderData.id,
         handler: function (response: any) {
-             alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-             // Ideally here we redirect to dashboard with a celebration animation
+          // Redirect to dashboard with success message
+          window.location.href = `/dashboard?payment=success&plan=${tier.id}&paymentId=${response.razorpay_payment_id}`;
+        },
+        prefill: {
+          name: "",
+          email: "",
+        },
+        notes: {
+          plan: tier.name,
         },
         theme: {
-          color: "#db2777" // Pink color matching theme
+          color: "#7c3aed",       // Deep purple matching our Antigravity design
+          backdrop_color: "#06030f", // Deep space dark background
+        },
+        modal: {
+          backdropclose: false,
+          escape: false,
+          animation: true,
         }
       };
 
