@@ -10,9 +10,9 @@ export const handler: Handler = async (event, context) => {
   try {
     const { tierId, isYearly } = JSON.parse(event.body || "{}");
     
-    // Optionally: Authenticate user before allowing payment
-    // const user = await authenticateUser(event);
-    // if (!user) return errorResponse(401, "Unauthorized - Please login first");
+    // Authenticate user before allowing payment
+    const user = await authenticateUser(event);
+    if (!user) return errorResponse(401, "Unauthorized - Please login first");
 
     let price = 0;
     if (tierId === "pro") price = isYearly ? 799 : 99;
@@ -37,6 +37,11 @@ export const handler: Handler = async (event, context) => {
       amount: amountInPaise,
       currency: "INR",
       receipt: `rcpt_${Date.now()}`,
+      notes: {
+        userId: user.uid,
+        tierId: tierId,
+        isYearly: isYearly ? "true" : "false"
+      }
     };
 
     // Make REST API call to Razorpay
