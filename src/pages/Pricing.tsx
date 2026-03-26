@@ -212,7 +212,7 @@ export default function Pricing() {
         currency: orderData.currency,
         name: "PassionPages.ai",
         description: `${tier.name} Plan — ${isYearly ? 'Yearly' : 'Monthly'} Subscription`,
-        image: "https://passionpageseduai.netlify.app/favicon.ico",
+        image: "https://passionpageseduai.netlify.app/logo.png",
         order_id: orderData.id,
         handler: function (response: any) {
           // Redirect to dashboard with success message
