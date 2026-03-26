@@ -1,8 +1,11 @@
 import { Handler } from "@netlify/functions";
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { authenticateUser } from "./utils/auth";
 import { jsonResponse, errorResponse } from "./utils/response";
+
+// Netlify functions default timeout is 10s — AI calls can take longer.
+// The background-function timeout can go up to 15 minutes, but we use 26s here.
+export const config = { maxDuration: 26 };
 
 const SYSTEM_INSTRUCTION = `You are PassionPages.ai, an advanced AI learning assistant designed for college students (B.Tech, M.Tech, B.Pharm, D.Pharm).
 Your goal is to simplify complex academic topics, generate study aids, and provide expert guidance.
@@ -25,7 +28,9 @@ export const handler: Handler = async (event, context) => {
 
   try {
     const { messages, modelId } = JSON.parse(event.body || "{}");
-    await authenticateUser(event);
+
+    // Auth is optional — we allow guest usage for chat
+
 
     // ─── Gemini route ─────────────────────────────────────────────────────────
     if (modelId.startsWith("gemini:")) {
