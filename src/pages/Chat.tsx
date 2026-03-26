@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { useModel } from "../context/ModelContext";
@@ -321,7 +323,10 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full w-full overflow-hidden">
+    <>
+      {/* KaTeX CSS for math rendering */}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" />
+      <div className="flex-1 flex flex-col lg:flex-row h-full w-full overflow-hidden">
       {/* ── LEFT: Chat (42%) ─────────────────────────────────── */}
       <div className="w-full lg:w-[42%] flex flex-col bg-[#080d1a] border-r border-white/5 h-full z-10 shadow-2xl">
         {/* Top bar */}
@@ -432,7 +437,8 @@ export default function Chat() {
                   ) : (
                     <div className="prose prose-sm prose-invert max-w-none">
                       <Markdown
-                        remarkPlugins={[remarkGfm]}
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
                         components={{
                           pre({ children, ...props }: any) {
                             const child = Array.isArray(children)
@@ -842,6 +848,6 @@ export default function Chat() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
