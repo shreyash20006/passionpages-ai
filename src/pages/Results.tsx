@@ -273,33 +273,7 @@ export default function Results() {
 
         {activeTab === 'mindmap' && (
           data.mindmap && data.mindmap.branches ? (
-            <motion.div
-              key="mindmap"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center"
-            >
-              <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold text-xl shadow-lg shadow-pink-500/20 mb-12 border border-white/10">
-                {data.mindmap.root || 'Central Topic'}
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 w-full">
-                {data.mindmap.branches.map((branch, i) => (
-                  <div key={i} className="relative">
-                    <div className="bg-[#1f2937]/80 border border-white/10 p-4 rounded-xl font-bold text-white mb-4 text-center shadow-inner">
-                      {branch.label}
-                    </div>
-                    <ul className="space-y-2">
-                      {(branch.nodes || []).map((node, j) => (
-                        <li key={j} className="bg-[#0a0f1e]/50 border border-white/5 p-3 rounded-lg text-sm text-slate-300 shadow-sm flex items-center gap-3">
-                          <div className="w-1.5 h-1.5 bg-pink-500 rounded-full shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
-                          {node}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            <AnimatedMindMap mindmap={data.mindmap} />
           ) : renderComingSoon('Mind Map')
         )}
 
@@ -416,5 +390,189 @@ function FlashcardItem({ card, index }: { card: Flashcard, index: number }) {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// ─── Animated Radial Mind Map ─────────────────────────────────────────────────
+const BRANCH_COLORS = [
+  { bg: 'from-pink-500 to-rose-500',     border: 'border-pink-500/50',   text: 'text-pink-300',   dot: '#ec4899', glow: 'shadow-pink-500/30'   },
+  { bg: 'from-blue-500 to-cyan-500',     border: 'border-blue-500/50',   text: 'text-blue-300',   dot: '#3b82f6', glow: 'shadow-blue-500/30'   },
+  { bg: 'from-emerald-500 to-teal-500',  border: 'border-emerald-500/50',text: 'text-emerald-300',dot: '#10b981', glow: 'shadow-emerald-500/30'},
+  { bg: 'from-orange-500 to-amber-500',  border: 'border-orange-500/50', text: 'text-orange-300', dot: '#f97316', glow: 'shadow-orange-500/30' },
+  { bg: 'from-purple-500 to-violet-500', border: 'border-purple-500/50', text: 'text-purple-300', dot: '#a855f7', glow: 'shadow-purple-500/30' },
+  { bg: 'from-yellow-500 to-lime-500',   border: 'border-yellow-500/50', text: 'text-yellow-300', dot: '#eab308', glow: 'shadow-yellow-500/30' },
+  { bg: 'from-cyan-500 to-sky-500',      border: 'border-cyan-500/50',   text: 'text-cyan-300',   dot: '#06b6d4', glow: 'shadow-cyan-500/30'   },
+  { bg: 'from-red-500 to-pink-600',      border: 'border-red-500/50',    text: 'text-red-300',    dot: '#ef4444', glow: 'shadow-red-500/30'    },
+];
+
+function AnimatedMindMap({ mindmap }: { mindmap: { root: string; branches: { label: string; nodes: string[] }[] } }) {
+  const branches = mindmap.branches || [];
+  const count = branches.length;
+
+  return (
+    <motion.div
+      key="mindmap"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="w-full overflow-x-auto"
+    >
+      {/* ── Radial SVG layout ── */}
+      <div className="relative w-full" style={{ minHeight: '680px' }}>
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+
+        {/* Center glow */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-64 h-64 rounded-full bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-transparent blur-3xl" />
+        </div>
+
+        {/* SVG connection lines */}
+        <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+          <defs>
+            {branches.map((_, i) => {
+              const c = BRANCH_COLORS[i % BRANCH_COLORS.length];
+              return (
+                <linearGradient key={i} id={`line-grad-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={c.dot} stopOpacity="0.8" />
+                  <stop offset="100%" stopColor={c.dot} stopOpacity="0.2" />
+                </linearGradient>
+              );
+            })}
+          </defs>
+          {branches.map((_, i) => {
+            const angle = (360 / count) * i - 90;
+            const rad = (angle * Math.PI) / 180;
+            const cx = 50, cy = 50;
+            const r = 32;
+            const x2 = cx + r * Math.cos(rad);
+            const y2 = cy + r * Math.sin(rad);
+            const mx = cx + (r / 2) * Math.cos(rad);
+            const my = cy + (r / 2) * Math.sin(rad);
+            const c = BRANCH_COLORS[i % BRANCH_COLORS.length];
+            return (
+              <motion.path
+                key={i}
+                d={`M ${cx}% ${cy}% Q ${mx + (Math.sin(rad) * 8)}% ${my - (Math.cos(rad) * 8)}% ${x2}% ${y2}%`}
+                fill="none"
+                stroke={c.dot}
+                strokeWidth="1.5"
+                strokeOpacity="0.5"
+                strokeDasharray="200"
+                strokeDashoffset="200"
+                strokeLinecap="round"
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 + i * 0.12, ease: 'easeOut' }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Center node */}
+        <motion.div
+          className="absolute flex items-center justify-center z-10"
+          style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '140px', marginTop: '-70px', marginLeft: '-70px' }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+        >
+          {/* Pulsing ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full border-2 border-pink-500/40"
+            animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.1, 0.5] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute inset-0 rounded-full border border-purple-500/30"
+            style={{ inset: '-12px' }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.05, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+          />
+          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-600 to-violet-700 flex items-center justify-center shadow-2xl shadow-pink-500/40 border border-white/20 p-1">
+            <div className="w-full h-full rounded-full bg-[#0a0f1e]/60 flex items-center justify-center backdrop-blur-sm">
+              <span className="text-white font-bold text-sm text-center leading-tight px-3">
+                {mindmap.root || 'Main Topic'}
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Branch nodes */}
+        {branches.map((branch, i) => {
+          const angle = (360 / count) * i - 90;
+          const rad = (angle * Math.PI) / 180;
+          const r = 32; // % from center
+          const x = 50 + r * Math.cos(rad);
+          const y = 50 + r * Math.sin(rad);
+          const c = BRANCH_COLORS[i % BRANCH_COLORS.length];
+          const floatDelay = i * 0.4;
+          const floatDuration = 2.5 + (i % 3) * 0.5;
+
+          return (
+            <motion.div
+              key={i}
+              className="absolute z-20"
+              style={{
+                left: `${x}%`,
+                top: `${y}%`,
+                transform: 'translate(-50%, -50%)',
+                width: '160px',
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.3 + i * 0.12 }}
+            >
+              {/* Branch header */}
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: floatDuration, repeat: Infinity, ease: 'easeInOut', delay: floatDelay }}
+                className="group cursor-default"
+              >
+                <div className={`bg-gradient-to-br ${c.bg} p-px rounded-2xl shadow-lg ${c.glow} shadow-md`}>
+                  <div className="bg-[#0d1220] rounded-2xl px-3 py-2 text-center">
+                    <span className={`font-bold text-sm ${c.text}`}>{branch.label}</span>
+                  </div>
+                </div>
+
+                {/* Child nodes - appear below on hover-like trigger */}
+                {(branch.nodes || []).length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {(branch.nodes || []).slice(0, 4).map((node, j) => (
+                      <motion.div
+                        key={j}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 + i * 0.12 + j * 0.07, duration: 0.35 }}
+                        className={`bg-[#0d1220]/90 border ${c.border} rounded-xl px-3 py-1.5 flex items-center gap-2 hover:scale-105 transition-transform cursor-default`}
+                      >
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ background: c.dot, boxShadow: `0 0 6px ${c.dot}aa` }}
+                        />
+                        <span className="text-slate-300 text-xs leading-snug line-clamp-2">{node}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="mt-6 flex flex-wrap justify-center gap-3 px-4">
+        {branches.map((branch, i) => {
+          const c = BRANCH_COLORS[i % BRANCH_COLORS.length];
+          return (
+            <div key={i} className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: c.dot }} />
+              <span>{branch.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 }
