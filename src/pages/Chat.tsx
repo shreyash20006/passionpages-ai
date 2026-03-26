@@ -254,10 +254,10 @@ export default function Chat() {
 
       if (isKeyError) {
         errorMsg =
-          "⚠️ **API Key Missing** — Set HUGGINGFACE_API_KEY in your Netlify site environment variables (or .env.local for local dev), then redeploy/restart.";
+          "⚠️ **API Key Missing** — Set HUGGINGFACE_API_KEY in Vercel Project Settings → Environment Variables, then redeploy.";
       } else if (isPermissionError) {
         errorMsg =
-          "⚠️ **Hugging Face Permission Error** — Your token cannot call Inference Providers. Update token permissions, replace HUGGINGFACE_API_KEY in Netlify env vars (or .env.local), then redeploy/restart.";
+          "⚠️ **Hugging Face Permission Error** — Your token cannot call Inference Providers. Update token permissions, replace HUGGINGFACE_API_KEY in Vercel Environment Variables, then redeploy.";
       } else if (errorMsg?.includes("quota") || error.status === 429) {
         errorMsg =
           "⏳ **Rate Limit** — Too many requests. Wait a minute and try again.";

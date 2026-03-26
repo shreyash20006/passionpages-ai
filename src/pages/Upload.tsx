@@ -578,7 +578,7 @@ export default function Upload() {
 
       if (isApiKeyError) {
         errorMessage =
-          "API Key Missing. Set HUGGINGFACE_API_KEY in Netlify site environment variables (or .env.local for local dev), then redeploy/restart.";
+          "API Key Missing. Set HUGGINGFACE_API_KEY in Vercel Project Settings → Environment Variables, then redeploy.";
       } else if (isPermissionError) {
         errorMessage =
           "Hugging Face token lacks Inference Providers permission. Create/update token permissions, update HUGGINGFACE_API_KEY, then redeploy/restart.";
@@ -755,12 +755,10 @@ export default function Upload() {
                 {error.includes("API Key") ? (
                   <>
                     <li>
-                      Set <b>HUGGINGFACE_API_KEY</b> in Netlify site environment
-                      variables (or in <b>.env.local</b> for local development).
+                      Set <b>HUGGINGFACE_API_KEY</b> in Vercel Project Settings → Environment Variables.
                     </li>
                     <li>
-                      Redeploy on Netlify (or restart local server) after
-                      updating env values.
+                      Redeploy on Vercel after updating env values.
                     </li>
                   </>
                 ) : error.includes("Inference Providers") ||
@@ -772,8 +770,7 @@ export default function Upload() {
                       <b>Inference Providers</b>.
                     </li>
                     <li>
-                      Use that updated token in Netlify environment variables
-                      (or <b>.env.local</b>) and redeploy/restart.
+                      Use that updated token in Vercel Environment Variables and redeploy.
                     </li>
                   </>
                 ) : error.includes("scanned") ? (

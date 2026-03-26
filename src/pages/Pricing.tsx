@@ -200,7 +200,7 @@ export default function Pricing() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create order. Make sure Razorpay Keys are in Netlify Environment Variables!");
+        throw new Error(error.message || "Failed to create order. Make sure Razorpay Keys are set in Vercel Environment Variables!");
       }
 
       const orderData = await response.json();
