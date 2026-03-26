@@ -162,6 +162,75 @@ const AntigravityParticles = () => {
 // ─── Main Pricing Page ───────────────────────────────────────────────────────
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [loadingPayment, setLoadingPayment] = useState<string | null>(null);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      // Check if already loaded
+      if ((window as any).Razorpay) return resolve(true);
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayment = async (tier: any) => {
+    if (tier.id === "free") return; // Do nothing or redirect to dashboard
+
+    setLoadingPayment(tier.id);
+    
+    try {
+      // 1. Load Razorpay Script
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        alert("Razorpay SDK failed to load. Are you offline?");
+        setLoadingPayment(null);
+        return;
+      }
+
+      // 2. Fetch Order from Backend
+      const response = await fetch('/api/razorpay-order', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tierId: tier.id, isYearly: isYearly }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create order. Make sure Razorpay Keys are in Netlify Environment Variables!");
+      }
+
+      const orderData = await response.json();
+      
+      // 3. Open Razorpay Widget
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "PassionPages.ai",
+        description: `Upgrade to ${tier.name} ${isYearly ? '(Yearly)' : '(Monthly)'}`,
+        order_id: orderData.id,
+        handler: function (response: any) {
+             alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+             // Ideally here we redirect to dashboard with a celebration animation
+        },
+        theme: {
+          color: "#db2777" // Pink color matching theme
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setLoadingPayment(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#06030f] text-white overflow-x-hidden relative perspective-[2000px] selection:bg-pink-500/30 font-inter">
@@ -375,15 +444,16 @@ export default function Pricing() {
                     {/* CTA Button */}
                     <div className="mt-10 relative z-10">
                       <MagneticButton 
+                        onClick={() => handlePayment(tier)}
                         className={`w-full py-4 rounded-xl font-bold tracking-wide transition-all duration-300 relative overflow-hidden group 
                         ${isPopular 
                           ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)]' 
                           : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20'}`}
                       >
                         <span className="relative z-10 block text-sm uppercase">
-                          {tier.id === "free" ? "Get Started" : tier.id === "pro" ? "Upgrade to Pro" : "Contact Sales"}
+                          {loadingPayment === tier.id ? "Processing..." : tier.id === "free" ? "Get Started" : tier.id === "pro" ? "Upgrade to Pro" : "Contact Sales"}
                         </span>
-                        {isPopular && (
+                        {isPopular && loadingPayment !== tier.id && (
                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-0" />
                         )}
                       </MagneticButton>
