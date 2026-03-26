@@ -5,6 +5,7 @@ import Upload from "./pages/Upload";
 import Results from "./pages/Results";
 import Dashboard from "./pages/Dashboard";
 import SavedNotes from "./pages/SavedNotes";
+import Pricing from "./pages/Pricing";
 import DashboardLayout from "./components/DashboardLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ModelProvider } from "./context/ModelContext";
@@ -19,6 +20,9 @@ export default function App() {
             <Routes>
               {/* Public Landing Page as Root */}
               <Route path="/" element={<Landing />} />
+              
+              {/* Pricing Page (Standalone page) */}
+              <Route path="/pricing" element={<Pricing />} />
 
               {/* Dashboard Routes wrapped in DashboardLayout */}
               <Route
