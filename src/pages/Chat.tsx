@@ -257,6 +257,21 @@ export default function Chat() {
   const latestModelMsg =
     [...messages].reverse().find((m) => m.role === "model")?.content || "";
 
+  // Preprocess LaTeX: convert [expr] and \[expr\] brackets → $$expr$$ for KaTeX
+  function preprocessLatex(content: string): string {
+    // Convert \[...\] display math to $$...$$
+    let result = content.replace(/\\\[([^]+?)\\\]/g, (_, math) => `$$${math.trim()}$$`);
+    // Convert \(...\) inline math to $...$
+    result = result.replace(/\\\(([^]+?)\\\)/g, (_, math) => `$${math.trim()}$`);
+    // Convert [LaTeX content] brackets to $$...$$ — only when LaTeX commands present
+    result = result.replace(/\[([^\]]*(?:\\[a-zA-Z]+|[\^_{}][^\]]*)[^\]]*)\]/g, (_, math) => {
+      // Skip if it looks like a markdown link or empty bracket
+      if (math.includes("http") || math.trim().length === 0) return `[${math}]`;
+      return `$$${math.trim()}$$`;
+    });
+    return result;
+  }
+
   // Check if content is visual JSON or plain text
   function isVisualContent(content: string) {
     try {
@@ -503,7 +518,7 @@ export default function Chat() {
                           },
                         }}
                       >
-                        {msg.content}
+                        {preprocessLatex(msg.content)}
                       </Markdown>
                     </div>
                   )}
@@ -788,7 +803,7 @@ export default function Chat() {
                         hr: () => <hr className="my-6 border-white/[0.06]" />,
                       }}
                     >
-                      {latestModelMsg}
+                      {preprocessLatex(latestModelMsg)}
                     </Markdown>
                     <div className="mt-6 pt-4 border-t border-white/[0.06]">
                       <p className="text-xs text-slate-600 italic">💬 Ask a follow-up question in the chat →</p>
