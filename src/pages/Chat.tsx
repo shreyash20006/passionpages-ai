@@ -17,8 +17,6 @@ import {
 } from "lucide-react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { useModel } from "../context/ModelContext";
@@ -121,6 +119,26 @@ export default function Chat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Trigger KaTeX auto-render on output panel after each response
+  useEffect(() => {
+    const DELAY = 200; // Wait for DOM to paint
+    const timer = setTimeout(() => {
+      const el = document.getElementById("output-content");
+      if (el && (window as any).renderMathInElement) {
+        try {
+          (window as any).renderMathInElement(el, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+            ],
+            throwOnError: false,
+          });
+        } catch (_) {}
+      }
+    }, DELAY);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   useEffect(() => {
@@ -339,8 +357,30 @@ export default function Chat() {
 
   return (
     <>
-      {/* KaTeX CSS */}
+      {/* KaTeX CSS + JS auto-render from CDN */}
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" />
+      <script
+        defer
+        src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
+        onLoad={() => {
+          const script2 = document.createElement('script');
+          script2.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js';
+          script2.defer = true;
+          script2.onload = () => {
+            const el = document.getElementById('output-content');
+            if (el && (window as any).renderMathInElement) {
+              (window as any).renderMathInElement(el, {
+                delimiters: [
+                  { left: '$$', right: '$$', display: true },
+                  { left: '$', right: '$', display: false },
+                ],
+                throwOnError: false
+              });
+            }
+          };
+          document.head.appendChild(script2);
+        }}
+      />
       <div className="flex-1 flex flex-col lg:flex-row h-full w-full overflow-hidden">
       {/* ── LEFT: Chat Input Panel (35%) ─── */}
       <div className="w-full lg:w-[35%] flex flex-col bg-[#080d1a] border-r border-white/5 h-full z-10 shadow-2xl">
@@ -455,8 +495,7 @@ export default function Chat() {
                     // Plain text AI response — show compact in bubble
                     <div className="prose prose-sm prose-invert max-w-none text-[13px]">
                       <Markdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
+                        remarkPlugins={[remarkGfm]}
                         components={{
                           pre({ children, ...props }: any) {
                             const child = Array.isArray(children)
@@ -728,8 +767,7 @@ export default function Chat() {
                   <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
                   <div className="p-8">
                     <Markdown
-                      remarkPlugins={[remarkGfm, remarkMath]}
-                      rehypePlugins={[rehypeKatex]}
+                      remarkPlugins={[remarkGfm]}
                       components={{
                         h1: ({ children }: any) => (
                           <h1 className="text-2xl font-bold text-white mb-4 mt-6 first:mt-0 flex items-center gap-3">
