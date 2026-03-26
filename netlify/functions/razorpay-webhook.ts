@@ -1,7 +1,7 @@
 import { Handler } from "@netlify/functions";
 import { jsonResponse, errorResponse } from "./utils/response";
-import { supabaseClient } from "./utils/supabase";
-const crypto = require("crypto");
+import { supabase } from "./utils/supabase";
+import * as crypto from "crypto";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -41,10 +41,10 @@ export const handler: Handler = async (event) => {
         return jsonResponse(200, { message: "Ignored - no userId" });
       }
 
-      console.log(\`Upgrading user \${userId} to \${tierId}\`);
+      console.log(`Upgrading user ${userId} to ${tierId}`);
 
       // Update the user's subscription in Supabase
-      const { error } = await supabaseClient
+      const { error } = await supabase
         .from("subscriptions")
         .upsert({
           id: userId, // Using userId as primary key or linked ID

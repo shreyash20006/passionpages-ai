@@ -45,7 +45,7 @@ export const handler: Handler = async (event, context) => {
     };
 
     // Make REST API call to Razorpay
-    const base64Auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+    const base64Auth = btoa(`${keyId}:${keySecret}`);
     
     const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
