@@ -1,37 +1,89 @@
 import React, { useState } from "react";
 import StudyGuideRenderer from "../components/StudyGuideRenderer";
 import { Loader2 } from "lucide-react";
+import { useModel } from "../context/ModelContext";
+import { useAuth } from "../context/AuthContext";
+import { getAuthToken } from "../lib/auth";
 
 export default function GenerateContent() {
   const [loading, setLoading] = useState(false);
   const [studyGuide, setStudyGuide] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { selectedModel } = useModel();
+  const { user } = useAuth();
+
   const handleGenerate = async (text: string) => {
     setLoading(true);
     setError(null);
     
     try {
+      const token = user ? await getAuthToken() : null;
+      
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           text: text,
-          modelId: 'hf:meta-llama/Llama-3.3-70B-Instruct'
+          modelId: selectedModel.id
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate content');
+        throw new Error('Failed to generate content (Tip: the upload API might only support Hugging Face right now)');
       }
 
       const data = await response.json();
       
       // Parse the JSON response
-      const parsedData = JSON.parse(data.text);
-      setStudyGuide(parsedData);
+      let parsedData;
+      try {
+        const cleaned = data.text.replace(/```json/g, "").replace(/```/g, "").trim();
+        parsedData = JSON.parse(cleaned);
+      } catch (e) {
+        throw new Error("Generated content was not valid JSON. Please try again.");
+      }
+      
+      // Transform new API format to StudyGuideData format to prevent mapping crashes
+      let finalGuide = parsedData;
+      if (!parsedData.sections) {
+        finalGuide = {
+          title: parsedData.title || "Study Guide",
+          sections: [
+            ...(parsedData.summary ? [{
+              heading: "Summary",
+              type: "text",
+              content: parsedData.summary
+            }] : []),
+            ...(parsedData.flashcards ? [{
+              heading: "Flashcards",
+              type: "list",
+              content: parsedData.flashcards.map((f: any) => `Q: ${f.question}\nA: ${f.answer}`)
+            }] : []),
+            ...(parsedData.quiz ? [{
+              heading: "Quiz",
+              type: "list",
+              content: parsedData.quiz.map((q: any) => `Q: ${q.question}\nOptions: ${q.options.join(', ')}\nA: ${q.answer}`)
+            }] : []),
+            ...(parsedData.diagram ? [{
+              heading: "Mind Map",
+              type: "diagram",
+              content: "",
+              diagram: parsedData.diagram
+            }] : []),
+            ...(parsedData.ppt ? [{
+              heading: "Presentation Outline",
+              type: "list",
+              content: parsedData.ppt.map((slide: any) => `${slide.title}:\n- ${slide.points.join('\n- ')}`)
+            }] : [])
+          ]
+        };
+      }
+
+      setStudyGuide(finalGuide);
       
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
