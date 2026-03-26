@@ -15,7 +15,8 @@ export default function LoadingAnimation({ onComplete }: LoadingAnimationProps) 
     }, 3500);
 
     return () => clearTimeout(timer);
-  }, [onComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!shouldRender) return null;
 
