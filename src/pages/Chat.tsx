@@ -324,11 +324,11 @@ export default function Chat() {
 
   return (
     <>
-      {/* KaTeX CSS for math rendering */}
+      {/* KaTeX CSS */}
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" />
       <div className="flex-1 flex flex-col lg:flex-row h-full w-full overflow-hidden">
-      {/* ── LEFT: Chat (42%) ─────────────────────────────────── */}
-      <div className="w-full lg:w-[42%] flex flex-col bg-[#080d1a] border-r border-white/5 h-full z-10 shadow-2xl">
+      {/* ── LEFT: Chat Input Panel (35%) ─── */}
+      <div className="w-full lg:w-[35%] flex flex-col bg-[#080d1a] border-r border-white/5 h-full z-10 shadow-2xl">
         {/* Top bar */}
         <div className="p-4 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#080d1a]/80 backdrop-blur-md">
           <div className="px-3 py-1.5 bg-[#0f1629] border border-white/5 rounded-full flex items-center gap-2 shadow-inner">
@@ -430,12 +430,15 @@ export default function Chat() {
                   {msg.role === "user" ? (
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   ) : isVisualContent(msg.content) ? (
-                    <p className="text-slate-400 italic text-xs flex items-center gap-1.5">
-                      <Wand2 size={12} className="text-pink-400" />
-                      Visual content generated — see output panel →
-                    </p>
+                    <div className="flex items-center gap-2 py-1">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30 flex items-center justify-center">
+                        <Wand2 size={12} className="text-pink-400" />
+                      </div>
+                      <span className="text-pink-300 text-xs font-semibold">Content ready — see panel →</span>
+                    </div>
                   ) : (
-                    <div className="prose prose-sm prose-invert max-w-none">
+                    // Plain text AI response — show compact in bubble
+                    <div className="prose prose-sm prose-invert max-w-none text-[13px]">
                       <Markdown
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeKatex]}
@@ -623,8 +626,8 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* ── RIGHT: Visual Output (58%) ───────────────────────── */}
-      <div className="w-full lg:w-[58%] flex flex-col bg-[#04080f] h-full relative z-0">
+      {/* ── RIGHT: Visual Output (65%) ─── */}
+      <div className="w-full lg:w-[65%] flex flex-col bg-[#04080f] h-full relative z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_center,rgba(236,72,153,0.05),transparent_50%)] pointer-events-none z-0" />
 
         <div className="p-4 border-b border-white/5 bg-[#04080f]/80 backdrop-blur-md flex items-center gap-3 shrink-0 z-10">
@@ -705,12 +708,13 @@ export default function Chat() {
               {isVisualContent(latestModelMsg) ? (
                 <NoteRenderer content={latestModelMsg} />
               ) : (
-                /* Fallback: GPAI-style rich markdown */
+                /* Fallback: Rich markdown with KaTeX math rendering */
                 <div className="bg-[#0d1220] rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden">
                   <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
                   <div className="p-8">
                     <Markdown
-                      remarkPlugins={[remarkGfm]}
+                      remarkPlugins={[remarkGfm, remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
                       components={{
                         h1: ({ children }: any) => (
                           <h1 className="text-2xl font-bold text-white mb-4 mt-6 first:mt-0 flex items-center gap-3">
@@ -847,6 +851,7 @@ export default function Chat() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </>
   );
