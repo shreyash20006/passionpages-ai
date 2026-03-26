@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, Navigate, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { ArrowLeft, RefreshCw, BookOpen, Layers, Table, Network, Presentation, Image as ImageIcon, Sparkles, Download, BookmarkPlus, Check, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowLeft, RefreshCw, BookOpen, Layers, Table, Network, Presentation, Image as ImageIcon, Sparkles, Download, BookmarkPlus, Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Markdown from 'react-markdown';
 import Mermaid from '../components/Mermaid';
 import { useAuth } from '../context/AuthContext';
@@ -279,30 +279,7 @@ export default function Results() {
 
         {activeTab === 'slides' && (
           data.slides && data.slides.length > 0 ? (
-            <motion.div
-              key="slides"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-12"
-            >
-              {data.slides.map((slide, i) => (
-                <div key={i} className="bg-[#1f2937]/50 border border-white/10 rounded-3xl p-8 aspect-video flex flex-col justify-center shadow-inner relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-pink-500/10 to-transparent rounded-bl-full pointer-events-none" />
-                  <div className="mb-8 relative z-10">
-                    <span className="text-xs font-bold text-pink-400 uppercase tracking-widest mb-2 block">Slide {i + 1}</span>
-                    <h3 className="text-3xl font-display font-bold text-white">{slide.title}</h3>
-                  </div>
-                  <ul className="space-y-4 relative z-10">
-                    {(slide.bullets || []).map((bullet, j) => (
-                      <li key={j} className="flex items-start gap-3 text-lg text-slate-300">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2.5 shrink-0 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </motion.div>
+            <AnimatedSlideDeck slides={data.slides} />
           ) : renderComingSoon('Slide Deck')
         )}
 
@@ -570,6 +547,188 @@ function AnimatedMindMap({ mindmap }: { mindmap: { root: string; branches: { lab
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: c.dot }} />
               <span>{branch.label}</span>
             </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Premium Slide Deck Viewer ─────────────────────────────────────────────────
+const SLIDE_THEMES = [
+  { accent: '#ec4899', bg: 'from-pink-950/60 to-[#0d1220]',   bar: 'from-pink-500 to-rose-500',     num: 'text-pink-400',   border: 'border-pink-500/20'   },
+  { accent: '#3b82f6', bg: 'from-blue-950/60 to-[#0d1220]',   bar: 'from-blue-500 to-cyan-400',     num: 'text-blue-400',   border: 'border-blue-500/20'   },
+  { accent: '#a855f7', bg: 'from-purple-950/60 to-[#0d1220]', bar: 'from-purple-500 to-violet-400', num: 'text-purple-400', border: 'border-purple-500/20' },
+  { accent: '#10b981', bg: 'from-emerald-950/60 to-[#0d1220]',bar: 'from-emerald-500 to-teal-400',  num: 'text-emerald-400',border: 'border-emerald-500/20'},
+  { accent: '#f97316', bg: 'from-orange-950/60 to-[#0d1220]', bar: 'from-orange-500 to-amber-400',  num: 'text-orange-400', border: 'border-orange-500/20' },
+  { accent: '#06b6d4', bg: 'from-cyan-950/60 to-[#0d1220]',   bar: 'from-cyan-500 to-sky-400',      num: 'text-cyan-400',   border: 'border-cyan-500/20'   },
+];
+
+function AnimatedSlideDeck({ slides }: { slides: { title: string; bullets: string[] }[] }) {
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const total = slides.length;
+  const theme = SLIDE_THEMES[current % SLIDE_THEMES.length];
+
+  const go = (idx: number) => {
+    setDirection(idx > current ? 1 : -1);
+    setCurrent(Math.max(0, Math.min(total - 1, idx)));
+  };
+
+  const variants = {
+    enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0, scale: 0.97 }),
+    center: { x: 0, opacity: 1, scale: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0, scale: 0.97 }),
+  };
+
+  const slide = slides[current];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex gap-4 w-full"
+    >
+      {/* ── Main slide panel ── */}
+      <div className="flex-1 flex flex-col">
+        {/* Progress bar */}
+        <div className="h-1 w-full bg-white/5 rounded-full mb-4 overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full bg-gradient-to-r ${theme.bar}`}
+            animate={{ width: `${((current + 1) / total) * 100}%` }}
+            transition={{ duration: 0.4 }}
+          />
+        </div>
+
+        {/* Slide card */}
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl" style={{ aspectRatio: '16/9', minHeight: '380px' }}>
+          {/* Colored accent line */}
+          <motion.div
+            className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${theme.bar} z-10`}
+            layoutId="accent-bar"
+          />
+
+          {/* Background */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${theme.bg}`} />
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 blur-3xl"
+            style={{ background: theme.accent }} />
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-5 blur-3xl"
+            style={{ background: theme.accent }} />
+
+          {/* Dot grid pattern */}
+          <div className="absolute inset-0 opacity-[0.04]"
+            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+          {/* Animated content */}
+          <AnimatePresence custom={direction} mode="wait">
+            <motion.div
+              key={current}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="relative z-10 h-full flex flex-col justify-center p-10 lg:p-14"
+            >
+              {/* Slide number */}
+              <div className="flex items-center gap-3 mb-6">
+                <span className={`text-xs font-bold uppercase tracking-[0.2em] ${theme.num}`}>
+                  Slide {current + 1} / {total}
+                </span>
+                <div className="h-px flex-1 opacity-20" style={{ background: theme.accent }} />
+              </div>
+
+              {/* Title */}
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-8 leading-tight">
+                {slide.title}
+              </h2>
+
+              {/* Bullets */}
+              <ul className="space-y-3">
+                {(slide.bullets || []).map((bullet, j) => (
+                  <motion.li
+                    key={j}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: j * 0.08, duration: 0.3 }}
+                    className="flex items-start gap-4"
+                  >
+                    <span
+                      className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold text-white mt-0.5"
+                      style={{ background: theme.accent, boxShadow: `0 0 12px ${theme.accent}66` }}
+                    >
+                      {j + 1}
+                    </span>
+                    <span className="text-slate-200 text-base lg:text-lg leading-relaxed">{bullet}</span>
+                  </motion.li>
+                ))}
+              </ul>
+
+              {/* PassionPages brand */}
+              <div className="absolute bottom-5 right-8 text-xs text-white/20 font-medium tracking-wider">
+                PassionPages.ai
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between mt-4">
+          <button
+            onClick={() => go(current - 1)}
+            disabled={current === 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={16} /> Previous
+          </button>
+
+          {/* Dot indicators */}
+          <div className="flex gap-1.5">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => go(i)}
+                className="transition-all duration-300 rounded-full"
+                style={{
+                  width: i === current ? '20px' : '6px',
+                  height: '6px',
+                  background: i === current ? theme.accent : 'rgba(255,255,255,0.2)',
+                }}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() => go(current + 1)}
+            disabled={current === total - 1}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Next <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Thumbnail panel ── */}
+      <div className="hidden lg:flex flex-col gap-2 w-36 shrink-0 overflow-y-auto max-h-[520px] pr-1 custom-scrollbar">
+        {slides.map((s, i) => {
+          const t = SLIDE_THEMES[i % SLIDE_THEMES.length];
+          return (
+            <motion.button
+              key={i}
+              onClick={() => go(i)}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              className={`relative rounded-xl overflow-hidden border-2 transition-all ${i === current ? t.border + ' shadow-lg' : 'border-white/10'}`}
+              style={{ aspectRatio: '16/9' }}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${t.bg}`} />
+              <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${t.bar}`} />
+              <div className="absolute inset-0 p-2 flex flex-col justify-center">
+                <p className="text-white/90 text-[8px] font-bold leading-snug line-clamp-2">{s.title}</p>
+              </div>
+              <div className="absolute bottom-1 right-1.5 text-white/30 text-[7px] font-bold">{i + 1}</div>
+            </motion.button>
           );
         })}
       </div>
