@@ -220,15 +220,15 @@ export default function DashboardLayout({
             </button>
 
             {/* Search */}
-            <div className="hidden md:flex items-center relative flex-1 max-w-xl group">
+            <div className="flex items-center relative flex-1 max-w-xl group">
               <Search
                 size={18}
                 className="absolute left-4 text-slate-400 group-focus-within:text-pink-500 transition-colors"
               />
               <input
                 type="text"
-                placeholder="Search study materials, flashcards, quizzes..."
-                className="w-full pl-12 pr-4 py-2.5 bg-[#111827] border border-white/5 focus:bg-[#111827] focus:border-pink-500/50 focus:ring-4 focus:ring-pink-500/20 rounded-2xl text-sm transition-all outline-none text-white shadow-inner"
+                placeholder="Search study materials, flashcards..."
+                className="w-full pl-12 pr-4 py-2.5 bg-[#111827] border border-white/5 focus:bg-[#111827] focus:border-pink-500/50 focus:ring-4 focus:ring-pink-500/20 rounded-2xl text-[13px] sm:text-sm transition-all outline-none text-white shadow-inner"
               />
             </div>
           </div>

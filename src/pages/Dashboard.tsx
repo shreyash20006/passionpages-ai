@@ -72,11 +72,11 @@ export default function Dashboard() {
 
   const tools = [
     { name: 'Generate Summary', icon: FileText, color: 'from-pink-500 to-rose-500', path: '/upload?type=summary' },
+    { name: 'AI Chat', icon: MessageSquare, color: 'from-emerald-400 to-teal-500', path: '/chat' },
     { name: 'Create Flashcards', icon: Layers, color: 'from-purple-500 to-indigo-500', path: '/upload?type=flashcards' },
     { name: 'Generate Diagram', icon: DiagramIcon, color: 'from-pink-400 to-purple-500', path: '/upload?type=mindmap' },
     { name: 'Create Quiz', icon: HelpCircle, color: 'from-blue-500 to-cyan-500', path: '/upload?type=table' },
-    { name: 'Generate PPT', icon: Presentation, color: 'from-emerald-400 to-teal-500', path: '/upload?type=slides' },
-    { name: 'Study Notes', icon: BookOpen, color: 'from-orange-400 to-red-500', path: '/upload?type=summary' },
+    { name: 'Generate PPT', icon: Presentation, color: 'from-orange-400 to-red-500', path: '/upload?type=slides' },
   ];
 
   const handleUploadClick = () => {
