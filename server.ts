@@ -246,7 +246,7 @@ async function startServer() {
 Your task is to help students learn effectively by providing clear, accurate, and engaging explanations.`;
 
       // Initialize Gemini API
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
       if (!apiKey) {
         return res.status(500).json({ error: "GEMINI_API_KEY_MISSING" });
       }
@@ -309,7 +309,7 @@ Your task is to help students learn effectively by providing clear, accurate, an
       }`;
 
       // Initialize Gemini API
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
       if (!apiKey) {
         return res.status(500).json({ error: "GEMINI_API_KEY_MISSING" });
       }
