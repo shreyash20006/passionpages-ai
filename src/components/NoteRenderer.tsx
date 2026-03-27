@@ -306,9 +306,9 @@ function NotesRenderer({ data }: { data: StudyContent }) {
 
                 {/* Inline Diagram */}
                 {section.diagram && (
-                  <div className="mt-3 bg-[#0a0f1e]/80 rounded-xl p-4 border border-white/5 shadow-inner">
+                  <div className="mt-3 bg-[#0a0f1e]/80 rounded-xl p-4 border border-white/5 shadow-inner w-full flex justify-center">
                     {section.diagram.svgCode ? (
-                      <div dangerouslySetInnerHTML={{ __html: section.diagram.svgCode }} className="w-full flex justify-center overflow-x-auto" />
+                      <div dangerouslySetInnerHTML={{ __html: section.diagram.svgCode.replace(/<svg\s+/, '<svg style="width: 100%; height: auto; max-height: 400px;" ') }} className="w-full flex justify-center" />
                     ) : section.diagram.mermaidCode ? (
                       <Mermaid chart={section.diagram.mermaidCode} />
                     ) : null}
@@ -342,9 +342,9 @@ function DiagramRenderer({ data }: { data: StudyContent }) {
   return (
     <div className="max-w-3xl">
       <h2 className="text-xl font-bold text-white mb-4">🔮 {data.title}</h2>
-      <div className="bg-[#111827]/80 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-lg shadow-black/20 overflow-x-auto">
+      <div className="bg-[#111827]/80 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-lg shadow-black/20 overflow-hidden w-full">
         {data.svgCode ? (
-          <div dangerouslySetInnerHTML={{ __html: data.svgCode }} className="w-full flex justify-center" />
+          <div dangerouslySetInnerHTML={{ __html: data.svgCode.replace(/<svg\s+/, '<svg style="width: 100%; height: auto; max-height: 500px;" ') }} className="w-full flex justify-center" />
         ) : data.mermaidCode ? (
           <Mermaid chart={data.mermaidCode} />
         ) : null}
