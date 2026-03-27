@@ -5,7 +5,7 @@ import Mermaid from './Mermaid';
 // ── Types ────────────────────────────────────────────────────
 interface Highlight { text: string; type: 'tip' | 'warning' | 'important'; }
 interface TableData { headers: string[]; rows: string[][]; }
-interface DiagramData { type: string; mermaidCode: string; description?: string; }
+interface DiagramData { type: string; mermaidCode?: string; svgCode?: string; description?: string; }
 
 interface Section {
   heading: string;
@@ -32,6 +32,7 @@ interface StudyContent {
   flashcards?: Flashcard[];
   questions?: QuizQuestion[];
   mermaidCode?: string;
+  svgCode?: string;
   description?: string;
 }
 
@@ -306,7 +307,11 @@ function NotesRenderer({ data }: { data: StudyContent }) {
                 {/* Inline Diagram */}
                 {section.diagram && (
                   <div className="mt-3 bg-[#0a0f1e]/80 rounded-xl p-4 border border-white/5 shadow-inner">
-                    <Mermaid chart={section.diagram.mermaidCode} />
+                    {section.diagram.svgCode ? (
+                      <div dangerouslySetInnerHTML={{ __html: section.diagram.svgCode }} className="w-full flex justify-center overflow-x-auto" />
+                    ) : section.diagram.mermaidCode ? (
+                      <Mermaid chart={section.diagram.mermaidCode} />
+                    ) : null}
                     {section.diagram.description && (
                       <p className="text-slate-500 text-xs mt-2 italic">{section.diagram.description}</p>
                     )}
@@ -337,8 +342,12 @@ function DiagramRenderer({ data }: { data: StudyContent }) {
   return (
     <div className="max-w-3xl">
       <h2 className="text-xl font-bold text-white mb-4">🔮 {data.title}</h2>
-      <div className="bg-[#111827]/80 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-lg shadow-black/20">
-        {data.mermaidCode && <Mermaid chart={data.mermaidCode} />}
+      <div className="bg-[#111827]/80 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-lg shadow-black/20 overflow-x-auto">
+        {data.svgCode ? (
+          <div dangerouslySetInnerHTML={{ __html: data.svgCode }} className="w-full flex justify-center" />
+        ) : data.mermaidCode ? (
+          <Mermaid chart={data.mermaidCode} />
+        ) : null}
       </div>
       {data.description && (
         <p className="text-slate-400 text-sm mt-3 italic">{data.description}</p>

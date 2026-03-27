@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
 
 export const config = { maxDuration: 30 };
 
@@ -12,7 +13,21 @@ IMPORTANT MATH FORMATTING RULES:
 - For inline math expressions, ALWAYS use single dollar sign delimiters: $expression$
 - For block/display math equations, ALWAYS use double dollar sign delimiters: $$expression$$
 - NEVER wrap equations in square brackets like [\\frac{...}]
-- Only use $...$ and $$...$$ for all mathematical expressions.`;
+- Only use $...$ and $$...$$ for all mathematical expressions.
+
+WHEN ASKED FOR A VISUALIZATION OR DIAGRAM:
+- If the user explicitly asks for a visual, diagram, graph, or colored chart, you MUST respond with a JSON object.
+- DO NOT use mermaid for high-end color visuals, use raw SVG.
+- The JSON MUST follow exactly this shape:
+\`\`\`json
+{
+  "type": "diagram",
+  "title": "Clear Diagram Title",
+  "description": "Short explanation of the visualization",
+  "svgCode": "<svg viewBox='0 0 800 500' xmlns='http://www.w3.org/2000/svg'>[Your incredibly detailed, styled SVG code here]</svg>"
+}
+\`\`\`
+- MAKE SURE the SVG looks premium! Use beautiful modern colors, drop-shadows, gradients, precise shapes, and easily readable <text> tags!`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
@@ -40,6 +55,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const chat = model.startChat({ history });
       const result = await chat.sendMessage(lastMessage);
       return res.status(200).json({ text: result.response.text() });
+    }
+
+    // ─── Anthropic route ──────────────────────────────────────────────────────────
+    if (modelId.startsWith('anthropic:')) {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY_MISSING' });
+
+      const anthropic = new Anthropic({ apiKey });
+      const formattedMessages = messages.map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content,
+      }));
+
+      const response = await anthropic.messages.create({
+        model: modelId.replace(/^anthropic:/, ''),
+        max_tokens: 4096,
+        system: SYSTEM_INSTRUCTION,
+        messages: formattedMessages as any,
+      });
+
+      const messageContent = response.content[0];
+      const text = messageContent.type === 'text' ? messageContent.text : '';
+      return res.status(200).json({ text });
     }
 
     // ─── xAI Grok route ────────────────────────────────────────────────────────

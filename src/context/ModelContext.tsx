@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 
-export type ModelProvider = "huggingface" | "bytez" | "gemini" | "xai";
+export type ModelProvider = "huggingface" | "bytez" | "gemini" | "xai" | "anthropic";
 
 export interface Model {
   id: string;
@@ -9,6 +9,11 @@ export interface Model {
 }
 
 export const AVAILABLE_MODELS: Model[] = [
+  {
+    id: "anthropic:claude-3-5-sonnet-20241022",
+    name: "Claude 3.5 Sonnet (Best for visuals)",
+    provider: "anthropic",
+  },
   {
     id: "gemini:gemini-2.0-flash",
     name: "Gemini 2.0 Flash",
