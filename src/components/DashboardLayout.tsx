@@ -31,6 +31,7 @@ import { useAuth } from "../context/AuthContext";
 import { LoginModal } from "./LoginModal";
 import { motion, AnimatePresence } from "motion/react";
 import AnimatedLogo from "./AnimatedLogo";
+import ThemeModal from "./ThemeModal";
 
 export default function DashboardLayout({
   children,
@@ -42,6 +43,7 @@ export default function DashboardLayout({
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const location = useLocation();
   const { selectedModel, setSelectedModel } = useModel();
   const { user, logout } = useAuth();
@@ -302,6 +304,18 @@ export default function DashboardLayout({
               </AnimatePresence>
             </div>
 
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setIsThemeModalOpen(true)}
+              className="p-2.5 text-slate-400 hover:bg-[#111827] rounded-2xl transition-all relative group"
+              title="Change Theme"
+            >
+              <Moon
+                size={22}
+                className="group-hover:text-purple-400 transition-colors"
+              />
+            </button>
+
             {/* Notifications */}
             <button className="p-2.5 text-slate-400 hover:bg-[#111827] rounded-2xl transition-all relative group">
               <Bell
@@ -421,6 +435,10 @@ export default function DashboardLayout({
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+      />
+      <ThemeModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
       />
     </div>
   );
