@@ -299,7 +299,8 @@ export default function Chat() {
         .trim();
       const match = cleaned.match(/\{[\s\S]*\}/);
       if (match) {
-        JSON.parse(match[0]);
+        const parsed = JSON.parse(match[0]);
+        if (parsed.type === "error") return false;
         return true;
       }
       return false;
