@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import admin from "firebase-admin";
-import firebaseConfig from "./firebase-applet-config.json" assert { type: "json" };
+import firebaseConfig from "./firebase-applet-config.json" with { type: "json" };
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -32,7 +32,7 @@ const supabase = createClient(
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT || 3000);
+  const PORT = Number(process.env.PORT || 5000);
 
   app.use(express.json({ limit: "50mb" }));
 
