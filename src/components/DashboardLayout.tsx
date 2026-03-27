@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Zap,
   Sparkles,
+  Settings,
 } from "lucide-react";
 import { useModel, AVAILABLE_MODELS } from "../context/ModelContext";
 import { useAuth } from "../context/AuthContext";
@@ -48,13 +49,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   const navItems = [
-    { name: "AI Chat",          path: "/chat",                  icon: MessageSquare },
-    { name: "Generate Summary", path: "/upload?type=summary",   icon: FileText },
-    { name: "Flashcards",       path: "/upload?type=flashcards",icon: Layers },
-    { name: "Generate Diagram", path: "/upload?type=mindmap",   icon: Network },
-    { name: "Create Quiz",      path: "/upload?type=table",     icon: HelpCircle },
-    { name: "Generate PPT",     path: "/upload?type=slides",    icon: Presentation },
-    { name: "Saved Notes",      path: "/saved",                 icon: Bookmark },
+    { name: "AI Chat", path: "/chat", icon: MessageSquare },
+    { name: "Generate Summary", path: "/upload?type=summary", icon: FileText },
+    { name: "Flashcards", path: "/upload?type=flashcards", icon: Layers },
+    { name: "Generate Diagram", path: "/upload?type=mindmap", icon: Network },
+    { name: "Create Quiz", path: "/upload?type=table", icon: HelpCircle },
+    { name: "Generate PPT", path: "/upload?type=slides", icon: Presentation },
+    { name: "Saved Notes", path: "/saved", icon: Bookmark },
+    { name: "Settings", path: "/settings", icon: Settings },
   ];
 
   return (

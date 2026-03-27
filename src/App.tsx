@@ -6,6 +6,7 @@ import Results from "./pages/Results";
 import Dashboard from "./pages/Dashboard";
 import SavedNotes from "./pages/SavedNotes";
 import Pricing from "./pages/Pricing";
+import DashboardSettings from "./pages/DashboardSettings";
 import DashboardLayout from "./components/DashboardLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ModelProvider } from "./context/ModelContext";
@@ -62,6 +63,14 @@ export default function App() {
                 element={
                   <DashboardLayout>
                     <SavedNotes />
+                  </DashboardLayout>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <DashboardLayout>
+                    <DashboardSettings />
                   </DashboardLayout>
                 }
               />
