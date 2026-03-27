@@ -27,7 +27,12 @@ WHEN ASKED FOR A VISUALIZATION OR DIAGRAM:
   "svgCode": "<svg viewBox='0 0 800 500' xmlns='http://www.w3.org/2000/svg'>[Your incredibly detailed, styled SVG code here]</svg>"
 }
 \`\`\`
-- MAKE SURE the SVG looks premium! Use beautiful modern colors, drop-shadows, gradients, precise shapes, and easily readable <text> tags! This is a strict requirement.`;
+- MAKE SURE the SVG looks premium! Use beautiful modern colors, drop-shadows, gradients, precise shapes, and easily readable <text> tags!
+- CRITICAL LAYOUT RULES TO PREVENT OVERLAPPING:
+  1. Space out your x and y coordinates generously! Ensure there is at least 150px gap between different shapes and text blocks.
+  2. Keep text concise to prevent messy line overflows.
+  3. Always center your text properly inside boxes using text-anchor='middle' and dominant-baseline='middle' so it doesn't spill over.
+  4. Your diagram must be perfectly spaced and systematic.`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
