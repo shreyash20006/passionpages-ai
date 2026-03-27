@@ -16,9 +16,9 @@ IMPORTANT MATH FORMATTING RULES:
 - Only use $...$ and $$...$$ for all mathematical expressions.
 
 WHEN ASKED FOR A VISUALIZATION OR DIAGRAM:
-- If the user explicitly asks for a visual, diagram, graph, or colored chart, you MUST respond with a JSON object.
-- DO NOT use mermaid for high-end color visuals, use raw SVG.
-- The JSON MUST follow exactly this shape:
+- CRITICAL: You are BANNED from using markdown \`\`\`mermaid\`\`\` format for diagrams!
+- If the user asks for a visual, diagram, graph, chart, or flowchart, you MUST respond with purely a JSON object and NOTHING ELSE. No markdown text before or after it.
+- Your output MUST be exactly this JSON structure:
 \`\`\`json
 {
   "type": "diagram",
@@ -27,7 +27,7 @@ WHEN ASKED FOR A VISUALIZATION OR DIAGRAM:
   "svgCode": "<svg viewBox='0 0 800 500' xmlns='http://www.w3.org/2000/svg'>[Your incredibly detailed, styled SVG code here]</svg>"
 }
 \`\`\`
-- MAKE SURE the SVG looks premium! Use beautiful modern colors, drop-shadows, gradients, precise shapes, and easily readable <text> tags!`;
+- MAKE SURE the SVG looks premium! Use beautiful modern colors, drop-shadows, gradients, precise shapes, and easily readable <text> tags! This is a strict requirement.`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
