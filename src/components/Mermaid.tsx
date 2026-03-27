@@ -5,6 +5,7 @@ mermaid.initialize({
   startOnLoad: false,
   theme: 'dark',
   securityLevel: 'loose',
+  suppressErrorRendering: true,
 });
 
 export default function Mermaid({ chart }: { chart: string }) {
