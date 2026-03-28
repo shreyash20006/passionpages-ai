@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { User, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { auth, githubProvider } from '../lib/firebase';
 
 interface AuthContextType {
@@ -29,6 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleLogin = async (providerName: string = 'github') => {
     if (providerName === 'github') {
       await signInWithPopup(auth, githubProvider);
+    } else if (providerName === 'google') {
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.addScope('profile');
+      googleProvider.addScope('email');
+      await signInWithPopup(auth, googleProvider);
+    } else if (providerName === 'apple') {
+      throw new Error('Apple sign-in requires additional configuration.');
     } else {
       throw new Error(`Provider ${providerName} is not supported yet.`);
     }

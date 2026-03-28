@@ -62,7 +62,7 @@ export default function Landing() {
             Pricing
           </Link>
           <Link
-            to="/dashboard"
+            to={user ? "/dashboard" : "/login"}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold rounded-md transition-colors"
           >
             {user ? "Dashboard" : "Get Started"}

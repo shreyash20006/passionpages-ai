@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Chat from "./pages/Chat";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
@@ -21,6 +23,10 @@ export default function App() {
             <Routes>
               {/* Public Landing Page as Root */}
               <Route path="/" element={<Landing />} />
+              
+              {/* Auth Pages */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
               
               {/* Pricing Page (Standalone page) */}
               <Route path="/pricing" element={<Pricing />} />
